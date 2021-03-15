@@ -1,0 +1,256 @@
+---
+title: Optimal Trajectory Generation using Synthetic Imagery within a Reinforcement Learning framework. 
+author: Jesse Declercq
+---
+
+\title{Towards Optimal Trajectory Generation in Autonomous Navigation Systems using Synthetic Imagery within a Reinforcement Learning framework.}
+
+\begin{abstract}
+This review paper investigates the possibility of using synthetic imagery as state space inputs to reinforcement learning algorithms in order to safely and reliably generate optimal trajectories in autonomous vehicles. These autonomous vehicles must be capable of generating optimal trajectories relative to a reference path, however, should simultaneously and recursively determine the presence of prospective collisions or hazards. In this paper, the state-of-the art relevant reinforcement algorithms are investigated to determine the optimal trajectory generation technique using only Global Navigation Satellite System (GNSS) bound information. This generation technique is powerful in environments or vehicles where local Simultaneous Localization and Mapping (SLAM) solutions are either unavailable or restricted in performance. The four various RL algorithms are reviewed in the OpenAI CarRacing gym environment whilst using a probabilistic model for predicting inevitable collisions within the customized environment.
+\end{abstract}
+
+<br>
+<br>
+
+# Introduction
+The race for the first fully autonomous passenger vehicle has stirred up a myriad of technologies and algorithms which has grown dramatically over the past decade. The field of autonomous mobility has experienced radical expansion in recent years, with implementation slowly progressing in commercial, industrial and passenger vehicles. The primary reason for the development of these technologies is to remove the factor of human error and thereby reduce morbidity and mortality rates according to Green and Senders [1]. According to a study by WHO in 2018 [2], approximately 1.35 million deaths occur each year globally due to motor vehicle accidents. 
+
+Machine learning has become the apex for the autonomous car's development with the convolutional neural network (CNN) taking charge in modern safety systems such as lane keeping assistance, obstacle detection and more. Supervised learning models are responsible for such features and are used mostly with intelligent control systems to implement even simple navigation on the most modern systems at the time of writing. However, these models are still susceptible to numerous challenges which reinforcement learning (RL) aims to overcome. Reinforcement Learning has been shown to be exceptionally powerful as showcased on a global platform in AlphaGO in 2016 [3], and has seen large strides forward since. So why not implement something along a RL framework for the autonomous car, an agent which can produce super-human performance? RL algorithms aren't perfect and have a tendency to produce high variance performance along with convergence not always guaranteed. The trajectory upon which the control system must execute must be capable of producing capable, safe and reliable manoeuvres in order to ensure that human lives are never at risk. [4]
+
+The high demand for expensive equipment in current semi-autonomous systems has been a point of contention and debate in recent years. Since CNN's do so well at analysing images, they should not be negated. However, what if the superposition of simple, fast GNSS based data with CNNs could be used instead of raw video or images. This is where synthetic image generation holds potential. It is far easier to represent location data through an image than through a small set of coordinates. The investigation into these various reinforcement learning algorithms coupled with the synthetic image generation, could prove to be the solution. 
+
+# Reinforcement Learning 
+Reinforcement learning (RL) is defined by an algorithm which learns from experience.
+Decisions made by the algorithm are all sequential and is completely input dependent.
+This mimics a student without a teacher. Only an indicator whether the student has found
+the right solution or not. The performance of the algorithm is solely dependent on the
+reward provided when the subject (student) has performed the correct solution a set
+amount of times. This is known as the training section of the reinforcement learning. This
+is very useful for robotics, and solution compilation where thousands of simulations can be
+run to eventually find a viable solution. [5]
+
+Deep learning is purely the application of machine learning using neural techniques such
+as neural networks that are of a deep architectural nature in comparison to conventional neural approaches. The key aspect of deep learning is that the feature breakdown produced by the models are not designed by human engineers: they are learned from data using a general-purpose learning procedure [6]. The methodologies implemented and tested by the state-of-the-art models used for autonomous vehicles are shown further in the paper. Most modern deep learning models are known to be supervised learning techniques, which are best utilized in applications where large quantities of data are available and underlying patterns and dynamics can be inferred from the model. Whereas reinforcement learning is a far younger solution approach as compared to supervised and unsupervised learning methods.
+
+Reinforcement learning in the context of autonomous driving has gained a lot of attention
+over the past few years, due to its ability to outperform humans in various other
+applications. However, success is not as easily replicated in autonomous driving due to the
+high complexity of real environments as well as the continuous action and state space in
+which these vehicles exist and operate. [7] In the context of RL most common applications
+abide in the discrete space such as Q-Learning, SARSA and Monte-Carlo methods,
+however, there exists a set of learning algorithms that operate in the continuous domain
+such as Deep Deterministic Policy Gradient (DDPG), Asynchronous Advantage
+Actor-Critic Algorithm (A3C), Actor-Critic using Kronecker-factored Trust Region
+(ACKTR) and several others. There exists an algorithm which operate in the discrete
+action space and continuous state space known as the Deep Q-Network. In this paper the
+following algorithms will be explored further.
+\begin{enumerate}
+    \item Deep Q Network (DQN)
+    \item Deep Deterministic Policy Gradient (DDPG)
+    \item Soft Actor Critic (SAC)
+    \item Actor-Critic using Kronecker-factored Trust Regions (ACKTR)
+\end{enumerate}
+Each of these algorithms will be briefly discussed as to the general mathematical mechanisms which are used in order to train and operate these algorithms. These algorithms are briefly discussed with reference to the relevance of the model to autonomous steering or driving agents in artificial virtual environments. Therefore these descriptions of the algorithms are in no way thorough or complete from a general standpoint.
+
+## Deep Q Network
+The Deep Q Network model is the simplest Deep Q-Learning model which makes use of a function approximator in the form of a neural network to approximate the value function which carries out the policy. The DQN is a discrete action space and continuous state space RL model. A single neural network is used to take in the state and outputs a series of Q values which coincide with the action space dimensionality. The policy $\pi$ parameterized by the network weights $\theta$ is simply defined as:
+\begin{equation*}
+\pi_\theta = \text{argmax}(Q_{\theta}^{\pi}(s_t))
+\end{equation*}
+
+The update rule for the value function approximator is defined by the optimal Q value given a state-action pair as the maximum return that can be obtained starting from observation $s$ , taking action $a$ and following the optimal policy thereafter. The optimal Q-function obeys the following Bellman optimality equation: [8]
+\begin{equation}
+    Q^{*}(s, a) = \mathbb{E}\left[r+\gamma \max _{a^{\prime}} Q^{*}\left(s^{\prime}, a^{\prime}\right)\right]
+\end{equation}
+
+The network is then trained using a replay buffer by which previous experiences are used. To avoid computing the full expectation in the DQN loss, we can minimize it using stochastic gradient descent. If the loss is computed using just the last transition $s, a, r, s^{\prime},$ this reduces to standard Q-Learning.
+
+Deep Q-Networks are limited to discrete action space and therefore limit the manoeuvrability of the agent in a real time implementation as well as the fact that system dynamic delays are not considered in the modelling of the Bellman optimality equation. This can however, be overcome with the use of an intelligent controller. The performance in training will not be guaranteed due to this external controller. For autonomous steering this can be an issue if the model's actions range from one extreme to another, this can be counteracted by making use of a larger action space. This algorithm is very sample efficient due to the use of the replay buffer, yet, requires large training hours for convergence.
+
+## Deep Deterministic Policy Gradient
+Reinforcement learning algorithms generally learn over time either by finding the optimal value function, policy, or model, however, in the continuous action space, value function based methods generally perform poorly, whereas policy methods are far more successful. The policy based method proposed by S. Wang, Jia, and Weng [9] takes into account the implications of random exploration in autonomous driving applications which might lead to unexpected performance and severe consequences.
+
+The policy based method, DDPG, makes use of a deterministic policy function approximator instead of a stochastic counterpart. This method combines the advantages of deterministic policy gradient, actor-critics and deep Q-network algorithms. In the exploration of the environment the Deterministic Policy Gradient (DPG) uses actor-critic algorithms to achieve off-policy learning. These actor-critic algorithms workflow are shown in Figure 1 where we can see that the actor network is used to approximate the policy and the critic is used to approximate the value function. The actor is therefore responsible for choosing the action provided the current state of the agent and the critic evaluates how good that action made by the actor is.
+
+<p align="center">
+    <img src = "https://github.com/JesseDeclercq/spectra-review-paper-competition/blob/master/submissions/images/JD_DDPG.jpg?raw=true" width = 400/>
+
+<em><center> Figure 1: The workflow of the general actor-critic paradigm. [9]</center> </em> </p>
+
+This critic is updated using temporal difference learning and the actor is updated using
+the policy gradient. Should the parameterization of the critic network is $\omega$ and the actor network is $\theta,$ the gradient for the deterministic policy is given by Equation 2.
+\begin{equation}
+    \nabla_{\theta} J\left(\mu_{\theta}\right)=E_{s \sim p^{\mu}}\left[\nabla_{\theta} \mu_{\theta}(s) \nabla_{a} Q^{\mu}(s, a) \mid a=\mu_{\theta}(s)\right]
+\end{equation}
+
+For the case of exploration the stochastic policy $\beta$ and off deterministic policy $\mu_{\theta}$, the off-policy policy gradient is defined as Equation 3.
+\begin{equation}
+    \nabla_{\theta} J_{\beta}\left(\mu_{\theta}\right)=E_{s \sim p^{\beta}}\left[\nabla_{\theta} \mu_{\theta}(s) \nabla_{a} Q^{\mu}(s, a) \mid a=\mu_{\theta}(s)\right]
+\end{equation}
+
+The DDPG algorithm is capable of using continuous action and state space environments which is very beneficial when considering fine steering and braking control actions. This model is simple and is utilizes a model-free setting which therefore requires a large number of episodes for training, and performs well in very simple and stable environments according to Henderson et al. [10].  The DDPG algorithm is capable of handling complex state and action spaces in continuous domain, however, its largest downfall is its brittle convergence properties. Fine hyperparameter tuning is required to achieve even moderate performance. Once the perfect hyperparameter set is achieved however, the performance of the model is excellent however, its sample efficiency discourages effective training at large batch sizes as well as motivates extensive training times.
+
+## Soft Actor Critic
+The Soft Actor Critic (SAC) is an off policy actor-critic deep RL algorithm based on the maximum entropy reinforcement learning framework. [11] The actor aims to maximize expected reward while also maximizing entropy which is to succeed at the task while acting as randomly as possible. The soft actor critic algorithm is similar to the DDPG except it is of a stochastic nature as opposed to deterministic and combats the high sample complexity and brittle convergence properties of DDPG.
+
+The policy returns a distribution for the action needed, which usually takes the shape of a Gaussian. The mean and standard deviation of the action space are used to describe the distribution which is then sampled from for the continuous action control. For the case of an image input such as the synthetic image, the actor neural network architecture can be shown below in Figure 2. This architecture was used for further studies and analysis into the performance of each of these algorithms beyond the scope of this paper.
+<p align="center">
+    <img src= "https://github.com/JesseDeclercq/spectra-review-paper-competition/blob/master/submissions/images/JD_Actor.jpg?raw=true" width = 1000/>
+
+<em> Figure 2: The actor network used in both the DDPG and SAC algorithms. The critic network follows the same structure, however, differs such that the action state is an input in the first fully connected layer and outputs a single neuron which is the Q-value of the state-action pair. </em>
+</p>
+
+Where general RL algorithms maximises the expected sum of rewards, SAC considers a more general maximum entropy objective which favours stochastic policies by augmenting the objective with the expected entropy of the policy over $\rho_{\pi}(\mathbf{s}_t)$: [11]
+\begin{equation}
+    J(\pi)=\sum_{t=0}^{T} \mathbb{E}_{\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right) \sim \rho_{\pi}}\left[r\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right)+\alpha \mathcal{H}\left(\pi\left(\cdot \mid \mathbf{s}_{t}\right)\right)\right]
+\end{equation}
+The temperature parameter $\alpha$ is used to regulate the weight of the stochasticity of the optimal policy. The soft-Q value for the state-action pair is computed iteratively using the Bellman backup operator $\mathcal{T}^{\pi}$. [11]
+\begin{equation}
+    \mathcal{T}^{\pi} Q\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right) \triangleq r\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right)+\gamma \mathbb{E}_{\mathbf{s}_{t+1} \sim p}\left[V\left(\mathbf{s}_{t+1}\right)\right]
+\end{equation}
+where
+\begin{equation}
+V\left(\mathbf{s}_{t}\right)=\mathbb{E}_{\mathbf{a}_{t} \sim \pi}\left[Q\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right)-\log \pi\left(\mathbf{a}_{t} \mid \mathbf{s}_{t}\right)\right]
+\end{equation}
+is the soft state value function. We find the optimal policy by repeating $\mathcal{T}^{\pi}$. The log probabilities are used to determine the soft update and are calculated from the Gaussian distribution from which the action space is sampled. It is important that an epsilon factor is included in the log probabilities to ensure that the logarithm asymptote is not reached or exceeded.
+<p align="center">
+    <img src="https://github.com/JesseDeclercq/spectra-review-paper-competition/blob/master/submissions/images/JD_SAC.jpg?raw=true" width = 1000/>
+
+<em> Figure 3:  Training curves on continuous control benchmarks. Soft actor-critic (yellow) performs consistently across all tasks and outperforming both on-policy and off-policy methods in the most challenging tasks. [11] </em>
+</p>
+
+The SAC algorithm is far more steady than its closes counterpart which is the DDPG algorithm and retains a stochastic nature which in turn return delivers superior results as shown in Figure 3, when compared on various OpenAI gym environments using continuous control. The study conducted by Haarnoja et al. [11] illustrated the superiority in certain applications of the SAC and is still to date one of the most successful RL algorithms in continuous control applications.
+
+The advantages boasted by SAC suggest that stochastic, entropy maximizing reinforcement learning algorithms can provide a promising avenue for improved robustness and stability, and further exploration of maximum entropy methods, including methods that incorporate second order information or more expressive policy classes.
+
+## ACKTR
+
+The Actor-Critic using Kronecker-factored Trust Region (ACKTR) optimization model was developed by Wu et al. [12] in an attempt to significantly improve the actor-critic weight space exploration. This improvement is made over the common simple variants of Stochastic Gradient Descent (SGD) and other first-order methods. The model was found to significantly and consistently improve reward yields and improve sample efficiency 2 to 3-fold compared to previous state-of-the-art on-policy actor-critic methods.
+
+The reinforcement learning model is based off of the combination of the Kronecker-factored approximated curvature (K-FAC) approximation, Trust-region policy optimization (TRPO) and actor-critic methods. K-FAC is a scalable approximation to natural gradient and is responsible for improving sample efficiency which measures the amount of samples needed to improve a policy. For simulation in the real world, sampling can be expensive. TRPO uses natural policy gradient, based on Minorize-Maximization algorithm, which optimizes a policy for the maximum discounted rewards. Lower-bound functions approximate the discounted reward function locally at the current policy and are known as trust regions. 
+
+Therefore ACKTR is a scalable trust-region optimization algorithm for actor-critic methods. The proposed algorithm uses a Kronecker-factored approximation to natural policy gradient that allows the covariance matrix of the gradient to be inverted efficiently which is to be used in the Fisher metric [12]. ACKTR uses Kronecker-factored approximation to compute the natural gradient update, and apply the natural gradient update to both the actor and the critic. The Fisher metric used in the ACKTR learning objective uses the policy function which defines a distribution over the action given the current state, and take the expectation over the trajectory distribution as in Equation 7:
+
+\begin{equation}
+F=\mathbb{E}_{p(\tau)}\left[\nabla_{\theta} \log \pi\left(a_{t} \mid s_{t}\right)\left(\nabla_{\theta} \log \pi\left(a_{t} \mid s_{t}\right)\right)^{\top}\right]
+\end{equation}
+where $p(\tau)$ is the distribution of trajectories, given by $p\left(s_{0}\right) \prod_{t=0}^{T} \pi\left(a_{t} \mid s_{t}\right) p\left(s_{t+1} \mid s_{t}, a_{t}\right) .$ In practice, one approximates the intractable expectation over trajectories collected during training. The ACKTR algorithm considers an agent interacting with an infinite-horizon, discounted Markov Decision Process $(\mathscr{X}, \mathscr{A}, \gamma, P, r) .$ At time $t,$ the agent chooses an action $a_{t} \in \mathscr{A}$ according to its policy $\pi_{\theta}\left(a \mid s_{t}\right)$ given its current state $s_{t} \in \mathscr{X} .$ The environment in turn produces a reward $r\left(s_{t}, a_{t}\right)$ and transitions to the next state $s_{t+1}$ according to the transition probability $P\left(s_{t+1} \mid s_{t}, a_{t}\right) .$ The goal of the agent is to maximize the expected $\gamma$ -discounted cumulative return.
+\begin{equation}
+\mathscr{J}(\theta)=\mathbb{E}_{\pi}\left[R_{t}\right]=\mathbb{E}_{\pi}\left[\sum_{i \geq 0}^{\infty} \gamma^{i} r\left(s_{t+i}, a_{t+i}\right)\right]
+\end{equation}
+
+with respect to the
+policy parameters $\theta$. Policy gradient methods directly parameterize a policy $\pi_{\theta}\left(a \mid s_{t}\right)$ and
+update parameter $\theta$ so as to maximize the objective $\mathscr{J}(\theta) .$ ACKTR is well poised for continuous action space control only and through the work done by Wu et al. [12] a sample-efficient and computationally inexpensive trust-region optimization method for deep reinforcement learning was developed. ACKTR is known to scale well and proves to be beneficial in autonomous driving applications.
+
+# Collision Probability Theory
+The probability of collision is absolutely fundamental to the safety of any autonomous vehicle. This calculates the probability that the host vehicle will collide with another object or vehicle within its operating environment. There are opposing models which use a pure time-to-collision (TTC) model, however, these models often rely on purely linear kinematics of both bodies as well as a fuzzy logic systems to account for various approach angles. These models are directly inferior to probabilistic models due to the lack of a confidence parameter. 
+
+The most crucial component in collision probability theory is the state space estimation of the host vehicle and other bodies. Kalman filters have always been the standard for state space estimation in various different fields for the past few decades [3]. The Kalman Filter was first developed and named after Rudolf Kalman as a filter which
+can be used to estimate future states with higher accuracy than that of the original
+predictive models and measurements. Kalman Filters are commonly used for linear
+dynamic systems, however, when the system is non-linear the assumptions made by the
+Kalman filter do not hold. Therefore the Extended Kalman Filter was developed to solve
+non-linear dynamic problems of the same domain. The EKF uses multivariate Taylor
+series expansions, to linearize a model about a working point such that the EKF no longer
+requires linear functions for the state transition and observation models, but instead
+requires differentiable functions. The EKF is a two step process, namely: predict and
+correct. The prediction step uses the process function, $\mathbf{f}$, to predict the future state and error covariance P assuming no noise based on the a priori state estimate. The correct step computes a gain factor known as the Kalman Gain which minimizes the error covariance.
+The estimate is then corrected for by adding the product of the Kalman Gain and the
+measurement prediction error to the current prediction estimate using the observation
+function h. The general governing state and measurement equations of the EKF is shown
+below in Equation 9.
+\begin{equation}
+    \begin{array}{l}
+    \mathbf{x}_{k}=\mathbf{f}\left(\mathbf{x}_{k-1}, \mathbf{u}_{k}\right)+\mathbf{w}_{k-1} \\
+    \mathbf{z}_{k}=\mathbf{h}\left(\mathbf{x}_{k}\right)+\mathbf{v}_{k}
+    \end{array}
+\end{equation}
+where $\mathbf{x}_{k}$ is the state vector, $\mathbf{z}_{k}$ is the observation vector, $\mathbf{w}_{k}$ is the process noise vector,
+$\mathbf{v}_{k}$ is the measurement noise vector, $\mathbf{f}$ is the process non-linear vector function, $\mathbf{h}$ is the
+observation non-linear vector function of which both are assumed continuous in the given
+domain, and $\mathbf{u}_{k}$ is the control vector if required or known. The process function is described by the kinematic model which parameterizes the motion of the bodies. There are 3 distinct models to choose from:
+\begin{itemize}
+\item Constant Velocity Model
+\item Constant Acceleration Model
+\item Constant Jerk Model
+\end{itemize}
+Each model requires more data as you move down the list with the constant jerk model the most complex, but is capable of capturing more accurate motion for unpredictable behaviour.
+The EKF is used to calculate the state estimate as well as the error covariance of the prediction. This provides a mean and variance parameter for the state estimation to which a Gaussian distribution can be fitted. The probability distribution function (PDF) which describes both the host vehicle and approaching body by $P(X|S_{k-1})$ as shown below in Figure 4:
+
+<p align="center">
+    <img src="https://github.com/JesseDeclercq/spectra-review-paper-competition/blob/master/submissions/images/JD_PDF1.jpg?raw=true" width = 493/>
+    <img src="https://github.com/JesseDeclercq/spectra-review-paper-competition/blob/master/submissions/images/JD_TWOPDF.jpg?raw=true" width = 480/>
+
+<em> Figure 4: (left) The PDF of the state estimation of a vehicle in space using the EKF model. (right) The comparison of the PDF's of two vehicles at a single shared moment in time. </em>
+</p>
+
+The figure above illustrates the confidence of the position of the vehicle's respective to a global coordinate system defined by the environment. In order to calculate the probability of collision the joint probability is integrated across the domain specified by the geometry of the respective bodies using Equation 2.
+
+\begin{equation}
+    P(c)=\int_{\ell_{y}} \int_{\ell_{x}} P\left(\Delta X_{k} \mid S_{1, k-1}, S_{2, k-1}\right) d x d y
+\end{equation}
+where $\ell_{y}$ is the dimensionality of the host vehicle in the y direction and $\ell_{x}$
+in the x direction. Once the probability of collision is larger than some safety threshold such that $P(c) > \alpha$, an imminent collision is flagged as true and the system must make an adequate response which diverges from the initial reference trajectory. It is also possible to evaluate the probability of collision in a different metric known as the Kullback-Leibler (KL) Divergence score defined by Equation 3:
+\begin{equation}
+    K L\left(P\left(S_{1, k}\right) \| P\left(S_{1, k}\right)\right)=\int_{\infty}^{-\infty} \int_{\infty}^{-\infty} P\left(S_{1, k}\right) \cdot \log \left(\frac{P\left(S_{1, k}\right)}{P\left(S_{2, k}\right.}\right) d x d y
+\end{equation}
+This probability of collision theory is important for not only fully autonomous systems but also in collision management systems either warn drivers of potential collisions or to take over the driver and mitigate the impact of the collision.
+
+
+# Synthetic Image Generation
+A synthetic image is an image which is constructed from a few vertices of raw data. In this paper the synthetic images discussed will be used to represent the local coordinate system of a host vehicle within a global environment given GNSS data such as position, heading and velocity. The synthetic image is then passed through to the respective RL algorithm as the instantaneous state recursively calculated with each step in time. These images are stacked usually in 4 frames in order to give the CNN context to the concurrent state.
+
+The synthetic image is generated by using only GNSS data as before mentioned. The angle of the road at vertex $i$ is described by $\beta$ which can be calculated according to Equation 12 below.
+\begin{equation}
+    \beta_i = \arctan2\{\mathbf{y}_i,\mathbf{x}_i\} 
+\end{equation}
+This is used to model the both the inner and outer edges of the road given a standard road width dimension. The rotational matrix $R(\mathbf{x}_c, \mathbf{y}_c, \phi)$ is responsible for rotating the global coordinates into local coordinates and depends on the vertex of the locally centered (relative to the vehicle's current position) as well as the vehicle's current heading angle $\phi$. The rotational matrix rotates the vertices on the road such that a new local coordinate system is now satisfied. This is demonstrated below in Equation 13:
+\begin{equation}
+    R(\mathbf{x}_c, \mathbf{y}_c, \phi)=\left[\begin{array}{c c}
+               \mathbf{x}_c \cos(\phi) - \mathbf{y}_c \sin(\phi) & 0 \\
+               0 & \mathbf{y}_c \cos(\phi) + \mathbf{x}_c \sin(\phi) \\
+    \end{array}\right]
+\end{equation}
+The new rotated vertices are then used for interpolation which require a rudimentary quadrature method due to the dynamic non-monotonically increasing nature of the road. These interpolated vertices are then used to fill the image between the outer and inner sides of the road's general shape. This is similarly done for the detection of obstacles with a known geometry. The synthetic image is now a binary image of the current situation of the vehicle's current position and an example of this synthetic image is shown in Figure 5.
+<p align="center">
+    <img src="https://github.com/JesseDeclercq/spectra-review-paper-competition/blob/master/submissions/images/JD_synthetic.jpg?raw=true" width = 300/>
+    <img src= "https://github.com/JesseDeclercq/spectra-review-paper-competition/blob/master/submissions/images/JD_collision.jpg?raw=true"width = 590/>
+
+<em> Figure 5: (left) The synthetic image generated using GNSS based data in the OpenAI CarRacing environment going around a left bend with a uniform rectangle obstacle in the middle of the reference trajectory. (right) The visualization of the interaction between the collision probability estimation using the EKF in time as well as the optimal trajectory chosen.  </em>
+</p>
+
+The collision probability can be used primarily in semi-autonomous systems as an indicator for when a safety system such as a collision management system (CMS) must take over as well as an external state vector input providing the collision parameters for the optimal policy evaluation.
+
+
+# Conclusion
+The requirement of safe and reliable autonomous vehicles has driven the machine learning industry to develop new and innovate ways to tackle the impending challenges which await these intelligent systems. The rise of deep learning, in particular, has seen the profusion of  research into reinforcement learning algorithms in autonomous driving applications, of which the ACKTR and SAC algorithms seem to be at the forefront. A new approach of using GNSS only based synthetic imagery has provided immense versatility to the environments and hardware on and in which these systems can operate. Together, with the use of an accurate state estimator used to determine collision probability the future of optimal trajectory generation within the reinforcement learning framework is promising.
+
+
+# References
+[1] Green, Marc and John Senders (2004). “Human error in road accidents”. In: Visual Expert
+
+[2] World Health Organization (2018). Global status report on road safety 2018: Summary. Tech. rep. World Health Organization.
+
+[3] Lapan, M., 2018. Deep Reinforcement Learning Hands-On: Apply modern RL methods, with deep Q-networks, value iteration, policy gradients, TRPO, AlphaGo Zero and more. Packt Publishing Ltd.
+
+[4] Cheng, R., Verma, A., Orosz, G., Chaudhuri, S., Yue, Y. and Burdick, J., 2019, May. Control regularization for reduced variance reinforcement learning. In International Conference on Machine Learning (pp. 1141-1150). PMLR
+
+[5] Sutton, Richard S and Andrew G Barto (2018). Reinforcement learning: An introduction. MIT press
+
+[6] LeCun, Yann, Yoshua Bengio, and Geoffrey Hinton (2015). “Deep learning”. In: nature 521.7553, pp. 436–444
+
+[7] Bojarski, Mariusz et al. (2016). “End to end learning for self-driving cars”. In: arXiv preprint arXiv:1604.07316
+
+[8] Roderick, M., MacGlashan, J. and Tellex, S., 2017. Implementing the deep q-network. arXiv preprint arXiv:1711.07478.
+
+[9] Wang, Sen, Daoyuan Jia, and Xinshuo Weng (2018). “Deep reinforcement learning for autonomous driving”. In: arXiv preprint arXiv:1811.11329
+
+[10] Henderson, Peter et al. (2017). “Deep reinforcement learning that matters”. In: arXiv
+preprint arXiv:1709.06560
+
+[11] Haarnoja, T., Zhou, A., Abbeel, P. and Levine, S., 2018, July. Soft actor-critic: Off-policy maximum entropy deep reinforcement learning with a stochastic actor. In International Conference on Machine Learning (pp. 1861-1870). PMLR.
+
+[12] Wu, Yuhuai et al. (2017). “Scalable trust-region method for deep reinforcement learning
+using kronecker-factored approximation”. In: Advances in neural information processing
+systems, pp. 5279–5288.
